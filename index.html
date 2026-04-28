@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bizom-mysteryReveal</title>
+  <meta name="description" content="Solve 8 interactive puzzles to reveal the hidden hackathon name. A gamified, competitive puzzle-driven experience." />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=23" />
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head><body>
+  <!-- ===== LOGIN OVERLAY ===== -->
+  <div id="login-overlay" class="overlay">
+    <div class="login-container">
+      <!-- Animated background -->
+      <div class="login-bg-effects">
+        <div class="login-orb login-orb-1"></div>
+        <div class="login-orb login-orb-2"></div>
+        <div class="login-orb login-orb-3"></div>
+        <div class="login-grid-lines"></div>
+        <div class="login-particles">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <div class="login-content">
+        <!-- Logo & Branding -->
+        <div class="login-logo">
+          <div class="login-logo-icon">
+            <div class="login-logo-ring"></div>
+            <span>◈</span>
+          </div>
+          <h1 class="login-title">Cache ME IF YOU CAN</h1>
+          <div class="login-tagline-wrap">
+            <div class="login-tagline-line"></div>
+            <p class="login-tagline">HACK THE SECRET</p>
+            <div class="login-tagline-line"></div>
+          </div>
+        </div>
+
+        <!-- Mission Briefing Card -->
+        <div class="login-card">
+          <div class="login-card-glow"></div>
+          <div class="login-card-inner">
+            <div class="login-card-badge">
+              <span class="login-badge-dot"></span>
+              SECURE CHANNEL
+            </div>
+            <h2 class="login-card-title">Agent Authentication</h2>
+            <p class="login-card-desc">Verify your identity to access the mission briefing. Only authorized personnel may proceed.</p>
+            
+            <div class="login-divider">
+              <span class="login-divider-text">SIGN IN</span>
+            </div>
+
+            <div class="login-error hidden" id="login-error"></div>
+
+            <button class="login-google-btn" id="google-login-btn">
+              <span class="login-google-btn-inner">
+                <svg width="22" height="22" viewBox="0 0 48 48">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                  <path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.0 24.0 0 0 0 0 21.56l7.98-6.19z"/>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                Continue with Google
+              </span>
+            </button>
+
+            <div class="login-domains">
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom info -->
+        <div class="login-footer">
+          <div class="login-footer-stats">
+            <div class="login-stat">
+              <span class="login-stat-num">8</span>
+              <span class="login-stat-label">Puzzles</span>
+            </div>
+            <div class="login-stat-divider"></div>
+            <div class="login-stat">
+              <span class="login-stat-num">1</span>
+              <span class="login-stat-label">Secret Word</span>
+            </div>
+            <div class="login-stat-divider"></div>
+            <div class="login-stat">
+              <span class="login-stat-num">∞</span>
+              <span class="login-stat-label">Fun</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ALREADY COMPLETED OVERLAY ===== -->
+  <div id="completed-overlay" class="overlay hidden">
+    <div class="completed-container">
+      <div class="login-bg-effects">
+        <div class="login-orb login-orb-1"></div>
+        <div class="login-orb login-orb-2"></div>
+        <div class="login-orb login-orb-3"></div>
+        <div class="login-particles">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="completed-inner">
+        <div class="completed-badge">✅ MISSION ACCOMPLISHED</div>
+        <div class="completed-trophy">🏆</div>
+        <h2 class="completed-title">MISSION COMPLETE</h2>
+        <p id="completed-user-info" class="completed-user"></p>
+        <div class="final-letters" id="completed-letters"></div>
+        <div class="completed-stats">
+          <div class="completed-stat">
+            <span class="completed-stat-icon">⏱</span>
+            <span id="completed-time-info" class="completed-stat-value"></span>
+            <span class="completed-stat-label">Time</span>
+          </div>
+          <div class="completed-stat-divider"></div>
+          <div class="completed-stat">
+            <span class="completed-stat-icon">📅</span>
+            <span id="completed-date-info" class="completed-stat-value"></span>
+            <span class="completed-stat-label">Completed</span>
+          </div>
+        </div>
+        <p class="completed-msg">You've decoded the name. Well done, Agent!</p>
+        <div class="completed-actions">
+          <button class="btn btn-primary btn-glow" id="completed-leaderboard-btn">🏆 View Leaderboard</button>
+         
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== NAVBAR ===== -->
+<nav id="navbar" class="hidden">
+  <!-- Left: tagline -->
+  <div class="nav-tagline" id="logo-btn">
+    <span class="logo-icon">◈</span>
+    <span class="logo-text">Mystery Reveal</span>
+  </div>
+
+  <!-- Center: progress bar only -->
+  <div class="nav-progress-wrap">
+    <div class="progress-bar-track" id="nav-progress">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Right: name | timer | icons -->
+  <div class="nav-right">
+    <span class="user-name" id="user-name-display" title="Logged in">Agent</span>
+    <div class="nav-divider"></div>
+    <div class="timer-widget" id="timer-widget">
+      <span class="timer-icon">⏱</span>
+      <span class="timer-display" id="timer-display">00:00</span>
+    </div>
+   <button class="nav-btn" id="leaderboard-btn" title="Leaderboard" style="background:none;border:none;box-shadow:none;outline:none;">🏆</button>
+<button class="nav-btn" id="logout-btn" title="Logout" style="background:none;border:none;box-shadow:none;outline:none;">🚪</button>
+  </div>
+</nav>
+
+
+  <!-- ===== STORY INTRO OVERLAY ===== -->
+  <div id="story-overlay" class="overlay hidden">
+    <div class="story-container">
+      <div class="story-stars"></div>
+      <div class="story-content">
+        <div class="story-glitch" data-text="TRANSMISSION INCOMING">TRANSMISSION INCOMING</div>
+        <div class="story-text" id="story-text"></div>
+        <button class="btn btn-primary btn-glow" id="story-start-btn">
+          <span>BEGIN MISSION</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LEVEL MAP (Main Hub) ===== -->
+  <main id="level-map" class="hidden">
+    <div class="map-header">
+      <h1 class="map-title">CACHE ME IF YOU CAN</h1>
+      <p class="map-subtitle">Solve each puzzle to decode one letter. Collect all 8 to reveal the name.</p>
+      <div class="collected-letters" id="collected-letters">
+        <span class="letter-slot" data-index="0">?</span>
+        <span class="letter-slot" data-index="1">?</span>
+        <span class="letter-slot" data-index="2">?</span>
+        <span class="letter-slot" data-index="3">?</span>
+        <span class="letter-slot" data-index="4">?</span>
+        <span class="letter-slot" data-index="5">?</span>
+        <span class="letter-slot" data-index="6">?</span>
+        <span class="letter-slot" data-index="7">?</span>
+      </div>
+    </div>
+    <div class="level-grid" id="level-grid">
+      <!-- Levels injected by JS -->
+    </div>
+  </main>
+
+  <!-- ===== LEVEL PLAY AREA ===== -->
+  <div id="level-play" class="hidden">
+    <div class="level-header">
+      <button class="btn btn-ghost" id="back-to-map">← Back to Map</button>
+      <div class="level-title-area">
+        <span class="level-badge" id="level-badge">LEVEL 1</span>
+        <h2 class="level-name" id="level-name">Word Scramble</h2>
+      </div>
+      <button class="btn btn-hint" id="hint-btn">
+        <span class="hint-icon">💡</span>
+        <span id="hint-text">Hint</span>
+      </button>
+    </div>
+    <div class="level-story" id="level-story"></div>
+    <div class="level-content" id="level-content">
+      <!-- Level-specific content injected here -->
+    </div>
+    <div class="hint-display hidden" id="hint-display">
+      <div class="hint-card">
+        <span class="hint-label">HINT</span>
+        <p id="hint-message"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FINAL REVEAL OVERLAY ===== -->
+  <div id="final-overlay" class="overlay hidden">
+    <div class="final-container">
+      <canvas id="confetti-canvas"></canvas>
+      <div class="final-content">
+        <div class="final-subtitle">You've cracked the code!</div>
+        <div class="final-letters" id="final-letters"></div>
+        <div class="final-time" id="final-time"></div>
+        <div class="final-form" id="final-form">
+          <input type="text" id="player-name" placeholder="Enter your name for the leaderboard" maxlength="20" class="input-field" />
+          <button class="btn btn-primary btn-glow" id="submit-score-btn">Submit Score</button>
+        </div>
+       
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LEADERBOARD OVERLAY ===== -->
+  <div id="leaderboard-overlay" class="overlay hidden">
+    <div class="lb-modal">
+      <div class="lb-modal-glow"></div>
+      <div class="lb-modal-inner">
+        <div class="lb-header">
+          <div class="lb-header-left">
+            <span class="lb-trophy">🏆</span>
+            <div>
+              <h2 class="lb-title">Leaderboard</h2>
+              <p class="lb-subtitle">Top agents ranked by speed</p>
+            </div>
+          </div>
+          <button class="lb-close" id="close-leaderboard">✕</button>
+        </div>
+        <div class="lb-body">
+          <table class="lb-table" id="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Agent</th>
+                <th>Time</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+            </tbody>
+          </table>
+          <p class="lb-empty hidden" id="leaderboard-empty">
+            <span style="font-size:40px;display:block;margin-bottom:12px;">🕵️</span>
+            No scores yet. Be the first to complete the mission!
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Easter egg in the source -->
+  <!-- 🔍 You found a clue! The answer is hidden across 8 levels. Each puzzle reveals one letter. -->
+  <!-- Hint: The final word is a portmanteau of "Mobile" + "Hackathon" -->
+
+  <script src="js/auth.js?v=21"></script>
+  <script src="js/gameState.js?v=21"></script>
+  <script src="js/timer.js?v=21"></script>
+  <script src="js/levels.js?v=21"></script>
+  <script src="js/ui.js?v=22"></script>
+  <script src="js/confetti.js?v=21"></script>
+  <script src="js/app.js?v=22"></script>
+
+
+</body>
+</html>
