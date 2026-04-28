@@ -11,12 +11,10 @@ const UI = {
     const storyOverlay = document.getElementById('story-overlay');
     const levelMap = document.getElementById('level-map');
     const levelPlay = document.getElementById('level-play');
-    const completedOverlay = document.getElementById('completed-overlay');
 
     storyOverlay.classList.add('hidden');
     levelMap.classList.add('hidden');
     levelPlay.classList.add('hidden');
-    completedOverlay.classList.add('hidden');
 
     switch (screen) {
       case 'story':
@@ -39,6 +37,7 @@ const UI = {
   // ---------- Story Intro ----------
   typeStory() {
     const storyEl = document.getElementById('story-text');
+    const startBtn = document.getElementById('story-start-btn');
     const story = `Agent, we've intercepted a <span class="highlight">classified transmission</span>.<br/><br/>
       The name of a secret operation has been <span class="highlight">fragmented into 8 encrypted pieces</span>, 
       each hidden behind a different puzzle.<br/><br/>
@@ -46,6 +45,9 @@ const UI = {
       The clock starts when you begin. Good luck.`;
 
     storyEl.innerHTML = '';
+    // Hide button until typing is done
+    if (startBtn) startBtn.style.display = 'none';
+
     let index = 0;
     const raw = story;
 
@@ -64,6 +66,12 @@ const UI = {
         }
         storyEl.innerHTML = buffer;
         setTimeout(typeChar, 15);
+      } else {
+        // Typing done — show the button
+        if (startBtn) {
+          startBtn.style.display = '';
+          startBtn.style.animation = 'fade-in 0.5s ease both';
+        }
       }
     };
     
@@ -102,8 +110,14 @@ const UI = {
         ${statusIcon}
       `;
 
+      // Only allow clicking on unlocked and not completed levels
       if (levelState.unlocked && !levelState.completed) {
         card.addEventListener('click', () => this.openLevel(def.id));
+        card.style.cursor = 'pointer';
+      } else if (levelState.completed) {
+        // Block access to completed levels
+        card.style.cursor = 'not-allowed';
+        card.style.opacity = '0.7';
       }
 
       grid.appendChild(card);
@@ -154,6 +168,9 @@ const UI = {
     // Reset hint display
     document.getElementById('hint-display').classList.add('hidden');
     
+    // Show hint button for regular levels
+    document.getElementById('hint-btn').style.display = '';
+    
     // Update hint button
     const hintBtn = document.getElementById('hint-btn');
     if (levelState.hintsUsed >= 2) {
@@ -168,6 +185,25 @@ const UI = {
 
     // Render level content
     Levels.render(levelId);
+
+    this.showScreen('level');
+  },
+
+  // ---------- Open Bhotnimo Zumble (Level 9) ----------
+  openBhotnimoZumble() {
+    this.currentLevelId = 9;
+
+    // Update header
+    document.getElementById('level-badge').textContent = `LEVEL 9`;
+    document.getElementById('level-name').textContent = 'Bhotnimo Zumble';
+    document.getElementById('level-story').textContent = 'The final test awaits. All the letters you have collected form the ultimate puzzle. Unscramble them to reveal the secret codename and complete your mission.';
+
+    // Hide hint button for this special level
+    document.getElementById('hint-btn').style.display = 'none';
+    document.getElementById('hint-display').classList.add('hidden');
+
+    // Render level 9 content
+    Levels.render(9);
 
     this.showScreen('level');
   },
@@ -211,7 +247,33 @@ const UI = {
   showLevelSuccess(levelId, letter) {
     GameState.completeLevel(levelId, letter);
 
-    // Check if all complete
+    // Special case: After level 8, go directly to Bhotnimo Zumble
+    if (levelId === 8) {
+      const overlay = document.createElement('div');
+      overlay.className = 'level-success';
+      overlay.id = 'level-success-overlay';
+      overlay.innerHTML = `
+        <div class="success-card glass-card">
+          <span class="success-icon">🎉</span>
+          <div class="success-title">LEVEL ${levelId} COMPLETE!</div>
+          <div class="success-letter">${letter}</div>
+          <p class="success-msg">You've earned the fragment letter "${letter}". All 8 fragments collected! Now face the final challenge!</p>
+          <button class="btn btn-primary btn-glow" id="success-continue-btn">
+            🧩 Final Challenge: Bhotnimo Zumble!
+          </button>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+
+      document.getElementById('success-continue-btn').addEventListener('click', () => {
+        overlay.remove();
+        this.openBhotnimoZumble();
+      });
+      return;
+    }
+
+    // Regular level completion
     const allComplete = GameState.isAllComplete();
 
     const overlay = document.createElement('div');
@@ -222,9 +284,9 @@ const UI = {
         <span class="success-icon">🎉</span>
         <div class="success-title">LEVEL ${levelId} COMPLETE!</div>
         <div class="success-letter">${letter}</div>
-        <p class="success-msg">You've earned the fragment letter "${letter}". ${allComplete ? 'All 8 fragments collected! Now unscramble them!' : `${8 - GameState.getCompletedCount()} more to go.`}</p>
+        <p class="success-msg">You've earned the fragment letter "${letter}". ${8 - GameState.getCompletedCount()} more to go.</p>
         <button class="btn btn-primary btn-glow" id="success-continue-btn">
-          ${allComplete ? '🧩 Final Challenge: Unscramble!' : '→ Continue'}
+          → Continue
         </button>
       </div>
     `;
@@ -233,12 +295,59 @@ const UI = {
 
     document.getElementById('success-continue-btn').addEventListener('click', () => {
       overlay.remove();
-      if (allComplete) {
-        this.showFinalJumble();
-      } else {
-        this.showScreen('map');
-      }
+      this.showScreen('map');
     });
+  },
+
+  // ---------- Mission Complete Screen ----------
+  _showMissionComplete() {
+    // Stop timer and mark game as completed
+    Timer.stop();
+    const elapsed = Timer.getElapsed();
+    GameState.updateTimerElapsed(elapsed);
+    GameState.markGameCompleted();
+
+    // Auto-submit score to leaderboard
+    const playerName = (Auth.currentUser && Auth.currentUser.name) ? Auth.currentUser.name : 'Agent';
+    const playerEmail = Auth.currentUser ? Auth.currentUser.email : '';
+    GameState.addToLeaderboard(playerName, elapsed, playerEmail);
+
+    // Hide ALL other screens
+    document.getElementById('final-overlay').classList.add('hidden');
+    document.getElementById('navbar').classList.add('hidden');
+    document.getElementById('story-overlay').classList.add('hidden');
+    document.getElementById('level-map').classList.add('hidden');
+    document.getElementById('level-play').classList.add('hidden');
+
+    // Build and show the mission complete screen directly
+    const overlay = document.getElementById('completed-overlay');
+
+    // Fill in user info
+    const agentName = (Auth.currentUser && Auth.currentUser.name) ? Auth.currentUser.name : 'Agent';
+    document.getElementById('completed-user-info').textContent = `Agent ${agentName}`;
+    document.getElementById('completed-time-info').textContent = Timer.format(elapsed);
+    const now = new Date();
+    document.getElementById('completed-date-info').textContent =
+      `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+
+    // Show MOBITHON as the final decoded word
+    const lettersEl = document.getElementById('completed-letters');
+    if (lettersEl) {
+      lettersEl.innerHTML = 'MOBITHON'.split('').map((letter, i) =>
+        `<div class="final-letter completed-final-letter" style="
+          animation: pop-in 0.5s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.12}s both;
+          border-color: var(--accent-green);
+          color: var(--accent-green);
+          box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
+        ">${letter}</div>`
+      ).join('');
+    }
+
+    // Show the overlay
+    overlay.classList.remove('hidden');
+
+    // Fire confetti
+    setTimeout(() => _launchCompletionConfetti(), 600);
   },
 
   // ---------- Final Jumble Word Puzzle ----------
@@ -329,11 +438,42 @@ const UI = {
     const playerEmail = Auth.currentUser ? Auth.currentUser.email : '';
     GameState.addToLeaderboard(playerName, elapsed, playerEmail);
 
-    // Hide the final jumble overlay
+    // Hide ALL other screens
     document.getElementById('final-overlay').classList.add('hidden');
+    document.getElementById('navbar').classList.add('hidden');
+    document.getElementById('story-overlay').classList.add('hidden');
+    document.getElementById('level-map').classList.add('hidden');
+    document.getElementById('level-play').classList.add('hidden');
 
-    // Show the completed screen directly
-    _showCompletedScreen();
+    // Build and show the mission complete screen directly
+    const overlay = document.getElementById('completed-overlay');
+
+    // Fill in user info
+    const agentName = (Auth.currentUser && Auth.currentUser.name) ? Auth.currentUser.name : 'Agent';
+    document.getElementById('completed-user-info').textContent = `Agent ${agentName}`;
+    document.getElementById('completed-time-info').textContent = Timer.format(elapsed);
+    const now = new Date();
+    document.getElementById('completed-date-info').textContent =
+      `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+
+    // Animate MOBITHON letters
+    const lettersEl = document.getElementById('completed-letters');
+    if (lettersEl) {
+      lettersEl.innerHTML = 'MOBITHON'.split('').map((letter, i) =>
+        `<div class="final-letter completed-final-letter" style="
+          animation: pop-in 0.5s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.12}s both;
+          border-color: var(--accent-green);
+          color: var(--accent-green);
+          box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
+        ">${letter}</div>`
+      ).join('');
+    }
+
+    // Show the overlay
+    overlay.classList.remove('hidden');
+
+    // Fire confetti
+    setTimeout(() => _launchCompletionConfetti(), 600);
   },
 
   // ---------- Leaderboard ----------

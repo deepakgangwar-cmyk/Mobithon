@@ -18,8 +18,8 @@
   --accent-gold: #ffd700;
 
   --text-primary: #e8e8f0;
-  --text-secondary: #8888aa;
-  --text-muted: #555577;
+  --text-secondary: #a0a0bb;
+  --text-muted: #777799;
 
   --gradient-main: linear-gradient(135deg, #00f0ff 0%, #b060ff 50%, #ff3e8e 100%);
   --gradient-card: linear-gradient(145deg, rgba(0,240,255,0.08), rgba(176,96,255,0.08));
@@ -679,37 +679,62 @@ body::before {
   z-index: 1;
   text-align: center;
   padding: 40px 24px;
-  max-width: 520px;
+  max-width: 560px;
+  width: 100%;
+  animation: scale-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .completed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-display);
   font-size: 12px;
   letter-spacing: 3px;
   color: var(--accent-green);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  padding: 6px 16px;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 999px;
+  background: rgba(0, 255, 136, 0.06);
+  animation: fade-in 0.5s ease 0.2s both;
 }
 
 .completed-trophy {
-  font-size: 64px;
+  font-size: 80px;
   margin-bottom: 16px;
+  display: block;
+  animation: trophy-bounce 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
 }
 
 .completed-title {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: clamp(28px, 5vw, 42px);
   font-weight: 900;
   background: var(--gradient-main);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 8px;
+  animation: fade-in 0.5s ease 0.4s both;
 }
 
 .completed-user {
   font-size: 16px;
   color: var(--text-secondary);
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+  animation: fade-in 0.5s ease 0.5s both;
+}
+
+.completed-codename-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text-muted);
+  margin-top: -28px;
+  margin-bottom: 28px;
+  animation: fade-in 0.5s ease 1.6s both;
 }
 
 .completed-stats {
@@ -718,6 +743,11 @@ body::before {
   justify-content: center;
   gap: 32px;
   margin: 24px 0;
+  padding: 20px 32px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  animation: fade-in 0.5s ease 1.8s both;
 }
 
 .completed-stat {
@@ -733,7 +763,7 @@ body::before {
 
 .completed-stat-value {
   font-family: var(--font-mono);
-  font-size: 18px;
+  font-size: 20px;
   color: var(--accent-cyan);
   font-weight: 600;
 }
@@ -755,6 +785,7 @@ body::before {
   color: var(--text-secondary);
   font-size: 15px;
   margin-bottom: 32px;
+  animation: fade-in 0.5s ease 2s both;
 }
 
 .completed-actions {
@@ -762,6 +793,34 @@ body::before {
   gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
+  animation: fade-in 0.5s ease 2.1s both;
+}
+
+/* Trophy bounce animation */
+@keyframes trophy-bounce {
+  0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+  60% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+  80% { transform: scale(0.95) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Completed letter tiles — slightly larger than normal final-letter */
+.completed-final-letter {
+  width: 56px !important;
+  height: 68px !important;
+  font-size: 30px !important;
+}
+
+@media (max-width: 480px) {
+  .completed-final-letter {
+    width: 38px !important;
+    height: 48px !important;
+    font-size: 20px !important;
+  }
+  .completed-stats {
+    gap: 20px;
+    padding: 16px 20px;
+  }
 }
 
 /* ---------- Story Overlay ---------- */
@@ -1279,12 +1338,13 @@ body::before {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 20px 24px;
+  padding: 16px 12px;
   border-radius: var(--radius-md);
   background: rgba(255,255,255,0.04);
   border: 2px solid var(--border-color);
   flex: 1;
   min-width: 0;
+  overflow: hidden;
   transition: all 0.3s;
 }
 
@@ -1294,10 +1354,12 @@ body::before {
 
 .env-day-name {
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: 11px;
   letter-spacing: 1px;
   color: var(--text-secondary);
   text-transform: uppercase;
+  text-align: center;
+  word-break: break-word;
 }
 
 .env-day-date {
@@ -1343,16 +1405,22 @@ body::before {
   outline-offset: -2px;
 }
 
+.jigsaw-slot.jigsaw-selected {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: -3px;
+  background: rgba(0, 240, 255, 0.15);
+}
+
 .jigsaw-piece {
   width: 100%;
   height: 100%;
   background-repeat: no-repeat;
-  cursor: grab;
+  cursor: pointer;
   transition: opacity 0.2s;
 }
 
 .jigsaw-piece:active {
-  cursor: grabbing;
+  cursor: pointer;
   opacity: 0.7;
 }
 
@@ -2002,5 +2070,66 @@ body::before {
 
   .nav-divider {
     display: none;
+  }
+}
+
+/* ---------- Zumble Level Styling ---------- */
+.zumble-display {
+  text-align: center;
+  margin: 24px 0;
+}
+
+.zumble-letters {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.zumble-letter {
+  display: inline-block;
+  width: 50px;
+  height: 60px;
+  background: var(--gradient-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--accent-cyan);
+  font-size: 24px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: float 3s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.2s);
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.zumble-letter:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 240, 255, 0.2);
+  border-color: var(--accent-cyan);
+}
+
+.zumble-letter:nth-child(1) { animation-delay: 0s; }
+.zumble-letter:nth-child(2) { animation-delay: 0.2s; }
+.zumble-letter:nth-child(3) { animation-delay: 0.4s; }
+.zumble-letter:nth-child(4) { animation-delay: 0.6s; }
+.zumble-letter:nth-child(5) { animation-delay: 0.8s; }
+.zumble-letter:nth-child(6) { animation-delay: 1.0s; }
+.zumble-letter:nth-child(7) { animation-delay: 1.2s; }
+.zumble-letter:nth-child(8) { animation-delay: 1.4s; }
+
+@media (max-width: 480px) {
+  .zumble-letters {
+    gap: 8px;
+  }
+  
+  .zumble-letter {
+    width: 40px;
+    height: 48px;
+    font-size: 20px;
   }
 }

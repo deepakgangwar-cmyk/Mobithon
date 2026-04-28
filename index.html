@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=23" />
+  <link rel="stylesheet" href="styles.css?v=30" />
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -118,11 +118,15 @@
         </div>
       </div>
       <div class="completed-inner">
-        <div class="completed-badge">✅ MISSION ACCOMPLISHED</div>
+        <div class="completed-badge">
+          <span class="login-badge-dot"></span>
+          ✅ MISSION ACCOMPLISHED
+        </div>
         <div class="completed-trophy">🏆</div>
         <h2 class="completed-title">MISSION COMPLETE</h2>
         <p id="completed-user-info" class="completed-user"></p>
         <div class="final-letters" id="completed-letters"></div>
+        <p class="completed-codename-label">OPERATION CODENAME DECODED</p>
         <div class="completed-stats">
           <div class="completed-stat">
             <span class="completed-stat-icon">⏱</span>
@@ -139,7 +143,6 @@
         <p class="completed-msg">You've decoded the name. Well done, Agent!</p>
         <div class="completed-actions">
           <button class="btn btn-primary btn-glow" id="completed-leaderboard-btn">🏆 View Leaderboard</button>
-         
         </div>
       </div>
     </div>
@@ -293,13 +296,13 @@
   <!-- 🔍 You found a clue! The answer is hidden across 8 levels. Each puzzle reveals one letter. -->
   <!-- Hint: The final word is a portmanteau of "Mobile" + "Hackathon" -->
 
-  <script src="js/auth.js?v=21"></script>
-  <script src="js/gameState.js?v=21"></script>
-  <script src="js/timer.js?v=21"></script>
-  <script src="js/levels.js?v=21"></script>
-  <script src="js/ui.js?v=22"></script>
-  <script src="js/confetti.js?v=21"></script>
-  <script src="js/app.js?v=22"></script>
+  <script src="js/auth.js?v=30"></script>
+  <script src="js/gameState.js?v=30"></script>
+  <script src="js/timer.js?v=30"></script>
+  <script src="js/levels.js?v=30"></script>
+  <script src="js/ui.js?v=30"></script>
+  <script src="js/confetti.js?v=30"></script>
+  <script src="js/app.js?v=30"></script>
 
 
 </body>

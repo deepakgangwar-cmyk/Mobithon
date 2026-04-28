@@ -22,6 +22,7 @@ const Levels = {
       case 6: this.renderLevel6(container); break;
       case 7: this.renderLevel7(container); break;
       case 8: this.renderLevel8(container); break;
+      case 9: this.renderLevel9(container); break;
     }
   },
 
@@ -399,7 +400,7 @@ const Levels = {
   },
 
   // ========== LEVEL 8: Jigsaw Puzzle → earns "O" ==========
-  _jigsawState: { pieces: [], solved: 0, total: 12, draggedIdx: null },
+  _jigsawState: { pieces: [], solved: 0, total: 12, draggedIdx: null, selectedSlot: null },
 
   renderLevel8(container) {
     const ROWS = 4;
@@ -420,14 +421,15 @@ const Levels = {
       total: TOTAL,
       rows: ROWS,
       cols: COLS,
-      draggedIdx: null
+      draggedIdx: null,
+      selectedSlot: null
     };
 
     container.innerHTML = `
       <div class="puzzle-card">
         <p class="puzzle-instruction">
           The homepage of <strong>JKOne Connect</strong> has been scrambled into ${TOTAL} pieces!
-          <strong>Drag and drop</strong> pieces to swap them and reassemble the original screenshot.
+          <strong>Tap two pieces</strong> to swap them and reassemble the original screenshot.
         </p>
         <div class="jigsaw-progress">
           <span id="jigsaw-count">0</span> / ${TOTAL} pieces correct
@@ -443,21 +445,19 @@ const Levels = {
   },
 
   _jigsawBuildPieces(pieces, rows, cols) {
+    const selectedSlot = this._jigsawState.selectedSlot;
     return pieces.map((pieceIdx, slotIdx) => {
       const pieceRow = Math.floor(pieceIdx / cols);
       const pieceCol = pieceIdx % cols;
       const bgX = cols > 1 ? (pieceCol / (cols - 1)) * 100 : 0;
       const bgY = rows > 1 ? (pieceRow / (rows - 1)) * 100 : 0;
       const isCorrect = pieceIdx === slotIdx;
+      const isSelected = selectedSlot === slotIdx;
       return `
-        <div class="jigsaw-slot" data-slot="${slotIdx}"
-             ondragover="event.preventDefault(); this.classList.add('jigsaw-over')"
-             ondragleave="this.classList.remove('jigsaw-over')"
-             ondrop="Levels.jigsawDrop(event, ${slotIdx})">
+        <div class="jigsaw-slot ${isSelected ? 'jigsaw-selected' : ''}" data-slot="${slotIdx}"
+             onclick="Levels.jigsawTap(${slotIdx})">
           <div class="jigsaw-piece ${isCorrect ? 'jigsaw-correct' : ''}"
-               draggable="true"
                data-piece="${pieceIdx}"
-               ondragstart="Levels.jigsawDragStart(event, ${slotIdx})"
                style="background-image: url('images/jkone-homepage.png'); background-size: ${cols * 100}% ${rows * 100}%; background-position: ${bgX}% ${bgY}%;">
           </div>
         </div>
@@ -465,36 +465,45 @@ const Levels = {
     }).join('');
   },
 
-  jigsawDragStart(e, slotIdx) {
-    this._jigsawState.draggedIdx = slotIdx;
-    e.dataTransfer.effectAllowed = 'move';
-  },
-
-  jigsawDrop(e, targetSlotIdx) {
-    e.preventDefault();
+  jigsawTap(slotIdx) {
     const state = this._jigsawState;
-    const sourceSlotIdx = state.draggedIdx;
-    if (sourceSlotIdx === null || sourceSlotIdx === targetSlotIdx) return;
 
-    // Swap
-    [state.pieces[sourceSlotIdx], state.pieces[targetSlotIdx]] =
-      [state.pieces[targetSlotIdx], state.pieces[sourceSlotIdx]];
+    if (state.selectedSlot === null) {
+      // First tap — select this piece
+      state.selectedSlot = slotIdx;
+      // Re-render to show selection highlight
+      const grid = document.getElementById('jigsaw-grid');
+      grid.innerHTML = this._jigsawBuildPieces(state.pieces, state.rows, state.cols);
+    } else if (state.selectedSlot === slotIdx) {
+      // Tapped same piece — deselect
+      state.selectedSlot = null;
+      const grid = document.getElementById('jigsaw-grid');
+      grid.innerHTML = this._jigsawBuildPieces(state.pieces, state.rows, state.cols);
+    } else {
+      // Second tap — swap the two pieces
+      const sourceSlot = state.selectedSlot;
+      [state.pieces[sourceSlot], state.pieces[slotIdx]] =
+        [state.pieces[slotIdx], state.pieces[sourceSlot]];
+      state.selectedSlot = null;
 
-    // Re-render
-    const grid = document.getElementById('jigsaw-grid');
-    grid.innerHTML = this._jigsawBuildPieces(state.pieces, state.rows, state.cols);
-    this._jigsawUpdateCount();
+      // Re-render
+      const grid = document.getElementById('jigsaw-grid');
+      grid.innerHTML = this._jigsawBuildPieces(state.pieces, state.rows, state.cols);
+      this._jigsawUpdateCount();
 
-    // Check solved
-    if (state.pieces.every((p, i) => p === i)) {
-      const feedback = document.getElementById('feedback-8');
-      feedback.className = 'answer-feedback correct';
-      feedback.textContent = '✅ You reassembled the JKOne Connect homepage! You earn the fragment letter "O"!';
-      setTimeout(() => UI.showLevelSuccess(8, 'O'), 1000);
+      // Check solved
+      if (state.pieces.every((p, i) => p === i)) {
+        const feedback = document.getElementById('feedback-8');
+        feedback.className = 'answer-feedback correct';
+        feedback.textContent = '✅ You reassembled the JKOne Connect homepage! You earn the fragment letter "O"!';
+        setTimeout(() => UI.showLevelSuccess(8, 'O'), 1000);
+      }
     }
-
-    state.draggedIdx = null;
   },
+
+  // Keep drag methods for backward compat but they won't be used
+  jigsawDragStart(e, slotIdx) {},
+  jigsawDrop(e, targetSlotIdx) {},
 
   _jigsawUpdateCount() {
     const state = this._jigsawState;
@@ -503,5 +512,50 @@ const Levels = {
     if (el) el.textContent = correct;
   },
 
-  checkLevel8() {}
+  checkLevel8() {},
+
+  // ========== LEVEL 9: Bhotnimo Zumble → earns "N" ==========
+  renderLevel9(container) {
+    container.innerHTML = `
+      <div class="puzzle-card">
+        <p class="puzzle-instruction">
+          <strong>BHOTNIMO ZUMBLE</strong> - The final challenge! Unscramble the letters below to reveal the secret word.
+          This is the ultimate test of your puzzle-solving skills.
+        </p>
+        <div class="zumble-display">
+          <div class="zumble-letters">
+            ${['B', 'H', 'O', 'T', 'N', 'I', 'M', 'O'].map(letter => 
+              `<span class="zumble-letter">${letter}</span>`
+            ).join('')}
+          </div>
+        </div>
+        <p class="puzzle-instruction" style="font-size: 14px; margin-top: 16px; color: var(--accent-cyan);">
+          Rearrange these 8 letters to form the name of the hackathon event!
+        </p>
+        <div class="input-row">
+          <input type="text" class="input-field" id="answer-9" placeholder="Enter the unscrambled word..." maxlength="8" autocomplete="off" />
+          <button class="btn btn-submit" onclick="Levels.checkLevel9()">Submit</button>
+        </div>
+        <div class="answer-feedback" id="feedback-9"></div>
+      </div>
+    `;
+
+    document.getElementById('answer-9').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') this.checkLevel9();
+    });
+  },
+
+  checkLevel9() {
+    const input = document.getElementById('answer-9').value.trim().toUpperCase();
+    const feedback = document.getElementById('feedback-9');
+
+    if (input === 'MOBITHON') {
+      feedback.className = 'answer-feedback correct';
+      feedback.textContent = '🎉 Correct! MOBITHON - You have completed the Bhotnimo Zumble! Mission Complete!';
+      setTimeout(() => UI._showMissionComplete(), 800);
+    } else {
+      feedback.className = 'answer-feedback wrong';
+      feedback.textContent = '❌ Not quite right. Think about the hackathon event name using all 8 letters...';
+    }
+  }
 };

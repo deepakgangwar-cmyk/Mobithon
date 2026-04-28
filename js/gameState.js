@@ -6,7 +6,7 @@
  * - No localStorage for game state or leaderboard
  */
 
-const LETTERS = ['B', 'H', 'O', 'T', 'N', 'I', 'M', 'O'];
+const LETTERS = ['B', 'H', 'O', 'T', 'N', 'I', 'M', 'O', 'N'];
 const FINAL_ANSWER = 'MOBITHON';
 
 const LEVEL_DEFS = [
@@ -116,6 +116,7 @@ const GameState = {
       timerStarted: false,
       timerElapsed: 0,
       storyShown: false,
+      jumbleSolved: false,
       gameCompleted: false,
       completedAt: null
     };
@@ -138,8 +139,13 @@ const GameState = {
       const doc = await firestore.collection('gameStates').doc(docId).get();
       if (doc.exists) {
         const data = doc.data();
-        if (data && data.levels && data.levels.length === 8) {
+        if (data && data.levels && data.levels.length >= 8) {
+          // Keep only 8 levels for the map display
+          if (data.levels.length > 8) {
+            data.levels = data.levels.slice(0, 8);
+          }
           if (data.gameCompleted === undefined) data.gameCompleted = false;
+          if (data.jumbleSolved === undefined) data.jumbleSolved = data.gameCompleted || false;
           if (data.completedAt === undefined) data.completedAt = null;
           if (data.timerElapsed > 86400 || data.timerElapsed < 0) data.timerElapsed = 0;
           this._state = data;
@@ -241,8 +247,14 @@ const GameState = {
     this.save();
   },
 
+  markJumbleSolved() {
+    this.state.jumbleSolved = true;
+    this.save();
+  },
+
   markGameCompleted() {
     this.state.gameCompleted = true;
+    this.state.jumbleSolved = true;
     this.state.completedAt = new Date().toISOString();
     this.save();
   },

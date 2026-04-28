@@ -176,8 +176,12 @@ function _startGameForUser() {
   GameState.load().then(() => {
     Timer.init();
 
-    // Check if user already completed the game
-    if (GameState.state.gameCompleted) {
+    // Check if user already completed the game (jumble solved or game completed)
+    if (GameState.state.gameCompleted || GameState.state.jumbleSolved) {
+      // Ensure gameCompleted is set if jumble was solved
+      if (!GameState.state.gameCompleted) {
+        GameState.markGameCompleted();
+      }
       _showCompletedScreen();
       return;
     }
@@ -196,10 +200,11 @@ function _startGameForUser() {
       UI.showScreen('story');
       UI.typeStory();
     } else if (GameState.isAllComplete()) {
-      // All levels done but game not marked complete — fix it and show completed screen
-      GameState.markGameCompleted();
-      _showCompletedScreen();
-      return;
+      // All levels done — show mission complete screen
+      if (GameState.state.timerStarted && !Timer._running) {
+        Timer.start();
+      }
+      UI._showMissionComplete();
     } else {
       // In-progress user — resume at level map
       UI.showScreen('map');
@@ -261,14 +266,14 @@ function _showCompletedScreen() {
     dateInfo.textContent = '-';
   }
 
-  // Show the final word
+  // Show the final word with animated letters
   if (lettersEl) {
     lettersEl.innerHTML = 'MOBITHON'.split('').map((letter, i) =>
-      `<div class="final-letter" style="
-        animation: pop-in 0.4s ease ${i * 0.1}s both;
+      `<div class="final-letter completed-final-letter" style="
+        animation: pop-in 0.5s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.12}s both;
         border-color: var(--accent-green);
         color: var(--accent-green);
-        box-shadow: 0 0 25px rgba(0, 255, 136, 0.3);
+        box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
       ">${letter}</div>`
     ).join('');
   }
@@ -277,6 +282,77 @@ function _showCompletedScreen() {
   document.getElementById('story-overlay').classList.add('hidden');
   document.getElementById('level-map').classList.add('hidden');
   document.getElementById('level-play').classList.add('hidden');
+  document.getElementById('final-overlay').classList.add('hidden');
+
+  // Launch confetti celebration after a short delay
+  setTimeout(() => _launchCompletionConfetti(), 600);
+}
+
+/**
+ * Launch a sustained confetti burst on the completed screen
+ */
+function _launchCompletionConfetti() {
+  // Use the existing confetti canvas if available, otherwise create one inside the overlay
+  let canvas = document.getElementById('completed-confetti-canvas');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.id = 'completed-confetti-canvas';
+    canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+    document.getElementById('completed-overlay').appendChild(canvas);
+  }
+
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const colors = ['#00f0ff', '#b060ff', '#ff3e8e', '#00ff88', '#ffd700', '#ff8c00'];
+  const pieces = [];
+  const PIECE_COUNT = 140;
+
+  for (let i = 0; i < PIECE_COUNT; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      w: Math.random() * 10 + 6,
+      h: Math.random() * 6 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.15,
+      vx: (Math.random() - 0.5) * 2,
+      vy: Math.random() * 3 + 1.5,
+      opacity: 1
+    });
+  }
+
+  let frame = 0;
+  const MAX_FRAMES = 280;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rotation += p.rotSpeed;
+      if (frame > MAX_FRAMES * 0.6) {
+        p.opacity = Math.max(0, p.opacity - 0.012);
+      }
+      ctx.save();
+      ctx.globalAlpha = p.opacity;
+      ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+      ctx.rotate(p.rotation);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    frame++;
+    if (frame < MAX_FRAMES) {
+      requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  draw();
 }
 
 /**
