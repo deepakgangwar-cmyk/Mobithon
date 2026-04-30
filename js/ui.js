@@ -194,8 +194,8 @@ const UI = {
     this.currentLevelId = 9;
 
     // Update header
-    document.getElementById('level-badge').textContent = `LEVEL 9`;
-    document.getElementById('level-name').textContent = 'Bhotnimo Zumble';
+    document.getElementById('level-badge').textContent = `FINAL LEVEL`;
+    document.getElementById('level-name').textContent = 'Mystery Reveal';
     document.getElementById('level-story').textContent = 'The final test awaits. All the letters you have collected form the ultimate puzzle. Unscramble them to reveal the secret codename and complete your mission.';
 
     // Hide hint button for this special level
@@ -259,7 +259,7 @@ const UI = {
           <div class="success-letter">${letter}</div>
           <p class="success-msg">You've earned the fragment letter "${letter}". All 8 fragments collected! Now face the final challenge!</p>
           <button class="btn btn-primary btn-glow" id="success-continue-btn">
-            🧩 Final Challenge: Bhotnimo Zumble!
+            🧩 Final Challenge: !!
           </button>
         </div>
       `;

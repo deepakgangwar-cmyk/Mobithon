@@ -514,14 +514,10 @@ const Levels = {
 
   checkLevel8() {},
 
-  // ========== LEVEL 9: Bhotnimo Zumble → earns "N" ==========
+  // ========== LEVEL 9: Mystery Reveal → earns "N" ==========
   renderLevel9(container) {
     container.innerHTML = `
       <div class="puzzle-card">
-        <p class="puzzle-instruction">
-          <strong>BHOTNIMO ZUMBLE</strong> - The final challenge! Unscramble the letters below to reveal the secret word.
-          This is the ultimate test of your puzzle-solving skills.
-        </p>
         <div class="zumble-display">
           <div class="zumble-letters">
             ${['B', 'H', 'O', 'T', 'N', 'I', 'M', 'O'].map(letter => 
@@ -551,7 +547,7 @@ const Levels = {
 
     if (input === 'MOBITHON') {
       feedback.className = 'answer-feedback correct';
-      feedback.textContent = '🎉 Correct! MOBITHON - You have completed the Bhotnimo Zumble! Mission Complete!';
+      feedback.textContent = '🎉 Correct! MOBITHON - You have completed the Mystery Reveal! Mission Complete!';
       setTimeout(() => UI._showMissionComplete(), 800);
     } else {
       feedback.className = 'answer-feedback wrong';
